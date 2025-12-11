@@ -29,6 +29,7 @@ import 'package:textrade/Parties/Models/LedgerMainResponseModel.dart';
 import 'package:textrade/SalesForm/model/searchModel.dart';
 import 'package:textrade/TopSalePurchaseReport/TopSalePurchaseModel.dart';
 import '../Common/Utilies.dart';
+import 'package:textrade/Common/ShareHelper.dart';
 
 class TopSalePurchaseReportDetailController extends GetxController {
   PlutoGridStateManager? stateManager;
@@ -654,6 +655,10 @@ class TopSalePurchaseReportDetailController extends GetxController {
       getChallanList();
     });
   }
+/// sanitize file name to remove special chars that might cause problems
+  String _safeFileName(String name) {
+    return name.replaceAll(RegExp(r'[\\/:\*\?"<>\|]'), '_');
+  }
 
   void getGeneratedPdfLink() async {
     // Create a deep copy instead of referencing listOfGDN
@@ -786,12 +791,15 @@ class TopSalePurchaseReportDetailController extends GetxController {
           await http.get(Uri.parse(data.requirementQuotation ?? ""));
       if (response.statusCode == 200) {
         final tempDir = await getTemporaryDirectory();
-        final file = File(
-            '${tempDir.path}/${isPuchase.value ? "Purchase" : "Sale"} Report.pdf');
+
+        // sanitize filename
+        final baseName =
+            _safeFileName('${isPuchase.value ? "Purchase" : "Sale"} Report');
+        final file = File('${tempDir.path}/$baseName.pdf');
         await file.writeAsBytes(response.bodyBytes);
 
-        // Share the PDF file
-        await Share.shareXFiles([XFile(file.path)], text: '');
+        // Use centralized safe share helper (handles iOS origin/popover)
+        await ShareHelper.shareFilesUniversal([XFile(file.path)]);
       } else {
         print('Failed to download PDF');
       }
