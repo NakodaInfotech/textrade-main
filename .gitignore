@@ -1,0 +1,12 @@
+.flutter-plugins
+.flutter-plugins-deps
+.packages
+.pub-cache/
+.dart_tool/
+build/
+.idea/
+.vscode/
+.DS_Store
+ios/Pods/
+ios/Podfile.lock
+pubspec.lock
